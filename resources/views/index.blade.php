@@ -10,29 +10,41 @@
     @include('components.header')
 
     <main>
-        <section>
-            <h2>Прорыв в IT</h2>
-            <img src="https://picsum.photos/200/150?1" alt="IT">
-            <p>Учёные создали новый алгоритм, который ускоряет работу нейросетей в 10 раз. Разработка уже тестируется в крупных компаниях.</p>
-        </section>
+        @if (session('success'))
+            <div class="alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
 
-        <section>
-            <h2>Новости космоса</h2>
-            <img src="https://picsum.photos/200/150?2" alt="Космос">
-            <p>Телескоп NASA обнаружил новую экзопланету в зоне обитаемости. Учёные не исключают наличие воды на её поверхности.</p>
-        </section>
+        @if (session('info'))
+            <div class="alert-info">
+                {{ session('info') }}
+            </div>
+        @endif
 
-        <section>
-            <h2>Медицина</h2>
-            <img src="https://picsum.photos/200/150?3" alt="Медицина">
-            <p>Разработана новая вакцина против сезонного вируса. Клинические испытания показали эффективность 95%.</p>
-        </section>
+        <h1>Все статьи</h1>
 
-        <section>
-            <h2>Робототехника</h2>
-            <img src="https://picsum.photos/200/150?4" alt="Робот">
-            <p>Инженеры представили робота, который умеет готовить завтрак. Премьера состоится на выставке технологий в Токио.</p>
-        </section>
+        @forelse ($texts as $text)
+            <section class="article-item">
+                <h2><a href="{{ route('article.show', $text->slug) }}">{{ $text->title }}</a></h2>
+                <div class="article-meta">
+                    <span><strong>Категория:</strong> <a href="{{ route('category.show', $text->category->slug) }}">{{ $text->category->name }}</a></span>
+                    <span><strong>Автор:</strong> {{ $text->author->username }}</span>
+                    <span><strong>Дата:</strong> {{ $text->published_at->format('d.m.Y H:i') }}</span>
+                </div>
+                <p>{{ Str::limit($text->content, 200) }}</p>
+                <a href="{{ route('article.show', $text->slug) }}" class="btn btn-blue">Читать далее</a>
+            </section>
+        @empty
+            <p>Статей пока нет. <a href="/register">Зарегистрируйтесь</a> и опубликуйте первую статью!</p>
+        @endforelse
+
+        <!-- Pagination -->
+        @if ($texts->hasPages())
+            <div class="pagination-container">
+                {{ $texts->links() }}
+            </div>
+        @endif
     </main>
 
     @include('components.footer')

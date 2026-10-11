@@ -19,48 +19,74 @@
                     <th>ID</th>
                     <th>Заголовок</th>
                     <th>Автор</th>
-                    <th>Статус</th>
+                    <th>Категория</th>
+                    <th>Дата</th>
                     <th>Действия</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>Прорыв в IT</td>
-                    <td>Иван</td>
-                    <td>Опубликована</td>
-                    <td>
-                        <button class="btn btn-blue">Редактировать</button>
-                        <button class="btn btn-yellow">Заблокировать</button>
-                        <button class="btn btn-red">Удалить</button>
-                    </td>
+                @foreach (\App\Models\Text::with('author', 'category')->get() as $text)
+                    <tr>
+                        <td>{{ $text->id }}</td>
+                        <td>{{ $text->title }}</td>
+                        <td>{{ $text->author->username }}</td>
+                        <td>{{ $text->category->name }}</td>
+                        <td>{{ $text->created_at->format('d.m.Y') }}</td>
+                        <td>
+                            <form action="{{ route('article.destroy', $text->id) }}" method="POST" class="inline-form">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-red" onclick="return confirm('Удалить?')">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                @endforeach
             </tbody>
         </table>
 
-        <h2 style="margin-top: 30px;">👥 Управление пользователями и ролями</h2>
+        <h2>👥 Управление пользователями и ролями</h2>
         <section>
-            <form action="#" method="POST" style="text-align: left; max-width: 400px; margin: 0 auto;">
-                @csrf
-                
-                <div class="form-group">
-                    <label>Пользователь:</label>
-                    <select name="user_id" required>
-                        <option value="">Выберите пользователя</option>
-                        <option value="1">user1@example.com (Иван)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Роль:</label>
-                    <select name="role" required>
-                        <option value="reader">Читатель</option>
-                        <option value="journalist">Журналист</option>
-                        <option value="admin">Администратор</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn btn-blue">Изменить роль</button>
-            </form>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Логин</th>
+                        <th>Роль</th>
+                        <th>Дата регистрации</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (\App\Models\User::with('role')->get() as $user)
+                        <tr>
+                            <td>{{ $user->id }}</td>
+                            <td>{{ $user->username }}</td>
+                            <td>
+                                <form action="{{ route('admin.update-role', $user->id) }}" method="POST" class="inline-form">
+                                    @csrf
+                                    <select name="role" onchange="this.form.submit()">
+                                        @foreach (\App\Models\Role::get() as $role)
+                                            <option value="{{ $role->id }}" {{ $user->role_id === $role->id ? 'selected' : '' }}>
+                                                {{ ucfirst($role->name) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </form>
+                            </td>
+                            <td>{{ $user->created_at->format('d.m.Y H:i') }}</td>
+                            <td>
+                                @if ($user->id !== Auth::id())
+                                    <form action="{{ route('admin.delete-user', $user->id) }}" method="POST" class="inline-form">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-red" onclick="return confirm('Удалить пользователя?')">Удалить</button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </section>
     </main>
 
